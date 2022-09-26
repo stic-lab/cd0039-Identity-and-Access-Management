@@ -47,11 +47,12 @@ def check_recipe(recipes):
 
 # ROUTES
 '''
-GET /drinks
-    it should be a public endpoint
-    it should contain only the drink.short() data representation
-returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-    or appropriate status code indicating reason for failure
+@TODO implement endpoint
+    GET /drinks
+        it should be a public endpoint
+        it should contain only the drink.short() data representation
+    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+        or appropriate status code indicating reason for failure
 '''
 @app.route("/drinks", methods=['GET'])
 # @requires_auth('get:drinks')
@@ -77,11 +78,12 @@ def retrieve_drinks():
         abort(error_code)
 
 '''
-GET /drinks-detail
-    it should require the 'get:drinks-detail' permission
-    it should contain the drink.long() data representation
-returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-    or appropriate status code indicating reason for failure
+@TODO implement endpoint
+    GET /drinks-detail
+        it should require the 'get:drinks-detail' permission
+        it should contain the drink.long() data representation
+    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
+        or appropriate status code indicating reason for failure
 '''
 @app.route("/drinks-detail", methods=['GET'])
 @requires_auth('get:drinks-detail')
@@ -108,12 +110,13 @@ def retrieve_drinks_detail(permission):
 
 
 '''
-POST /drinks
-    it should create a new row in the drinks table
-    it should require the 'post:drinks' permission
-    it should contain the drink.long() data representation
-returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-    or appropriate status code indicating reason for failure
+@TODO implement endpoint
+    POST /drinks
+        it should create a new row in the drinks table
+        it should require the 'post:drinks' permission
+        it should contain the drink.long() data representation
+    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
+        or appropriate status code indicating reason for failure
 '''
 @app.route("/drinks", methods=['POST'])
 @requires_auth('post:drinks')
@@ -149,14 +152,15 @@ def create_drinks(permission):
         abort(422)
 
 '''
-PATCH /drinks/<id>
-    where <id> is the existing model id
-    it should respond with a 404 error if <id> is not found
-    it should update the corresponding row for <id>
-    it should require the 'patch:drinks' permission
-    it should contain the drink.long() data representation
-returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-    or appropriate status code indicating reason for failure
+@TODO implement endpoint
+    PATCH /drinks/<id>
+        where <id> is the existing model id
+        it should respond with a 404 error if <id> is not found
+        it should update the corresponding row for <id>
+        it should require the 'patch:drinks' permission
+        it should contain the drink.long() data representation
+    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
+        or appropriate status code indicating reason for failure
 '''
 @app.route("/drinks/<int:drink_id>", methods=['PATCH'])
 @requires_auth('patch:drinks')
@@ -193,13 +197,14 @@ def update_drink(permission, drink_id):
 
 
 '''
-DELETE /drinks/<id>
-    where <id> is the existing model id
-    it should respond with a 404 error if <id> is not found
-    it should delete the corresponding row for <id>
-    it should require the 'delete:drinks' permission
-returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-    or appropriate status code indicating reason for failure
+@TODO implement endpoint
+    DELETE /drinks/<id>
+        where <id> is the existing model id
+        it should respond with a 404 error if <id> is not found
+        it should delete the corresponding row for <id>
+        it should require the 'delete:drinks' permission
+    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
+        or appropriate status code indicating reason for failure
 '''
 @app.route("/drinks/<int:drink_id>", methods=["DELETE"])
 @requires_auth('delete:drinks')
@@ -212,16 +217,27 @@ def delete_drinks(permission, drink_id):
             abort(error_code)
         drink.delete()
         return jsonify({"success": True, "deleted": drink_id})
-    except (AuthenticationError, MemoryError, TypeError) as exception:  # included for future use case
+    except (AuthenticationError, MemoryError, TypeError):  # included for future use case
         abort(error_code)
-    except Exception as e:
+    except Exception:
         abort(error_code)
 
 
 
 
+# Error Handling
 '''
-error handlers using the @app.errorhandler(error) decorator
+Example error handling for unprocessable entity
+'''
+
+@app.errorhandler(422)
+def unprocessable(error):
+    return (
+        jsonify({"success": False, "error": 422, "message": "unprocessable"}),
+        422,
+    )
+'''
+@TODO implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
              jsonify({
                     "success": False,
@@ -229,6 +245,11 @@ error handlers using the @app.errorhandler(error) decorator
                     "message": "resource not found"
                     }), 404
 
+'''
+
+'''
+@TODO implement error handler for 404
+    error handler should conform to general task above
 '''
 @app.errorhandler(404)
 def not_found(error):
@@ -249,12 +270,6 @@ def not_found(error):
         405,
     )
 
-@app.errorhandler(422)
-def unprocessable(error):
-    return (
-        jsonify({"success": False, "error": 422, "message": "unprocessable"}),
-        422,
-    )
 
 '''
 @TODO implement error handler for AuthError
