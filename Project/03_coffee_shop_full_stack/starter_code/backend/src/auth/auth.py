@@ -5,9 +5,10 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'stic-lab.us.auth0.com'
+AUTH0_DOMAIN = 'stic-lab.us.auth0.com' #stic-lab.us.auth0.com
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'http://127.0.0.1:3000'
+# CLIENT_ID: 'omU89FlxfYmwgv3b3cm9CVvYFqewjyXG'
 
 
 ## AuthError Exception
@@ -19,6 +20,7 @@ class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
+    
 
 
 ## Auth Header
@@ -33,15 +35,27 @@ class AuthError(Exception):
 def get_token_auth_header():
     # check if authorization is not in request
     if 'Authorization' not in request.headers:
-        abort(401)
+        raise AuthError({
+                'success': False,
+                'code': 'invalid_header',
+                'description': 'Unable to find the appropriate key.'
+            }, 400)
     # get the token   
     auth_header = request.headers['Authorization']
     header_parts = auth_header.split(' ')
     # check if token is valid
     if len(header_parts) != 2:
-        abort(401)
+        raise AuthError({
+                'success': False,
+                'code': 'invalid_header',
+                'description': 'Unable to parse authentication token.'
+            }, 401)
     elif header_parts[0].lower() != 'bearer':
-        abort(401) 
+        raise AuthError({
+                'success': False,
+                'code': 'invalid_claims',
+                'description': 'Incorrect claims. Please, check the audience and issuer.'
+            }, 401)
     return header_parts[1]
 
 '''
@@ -58,14 +72,16 @@ def get_token_auth_header():
 def check_permissions(permission, payload):
     if 'permissions' not in payload:
         raise AuthError({
-            'code': 'invalid_claims',
-            'description': 'Permissions not included in JWT.'
-        }, 400)
+                'success': False,
+                'code': 'invalid_permission',
+                'description': 'Unable to find the permissions.'
+            }, 400)
     if permission not in payload['permissions']:
         raise AuthError({
-            'code': 'unauthorized',
-            'description': 'Permission not found.'
-        }, 403)
+                'success': False,
+                'code': 'invalid_permission',
+                'description': 'Permission not found.'
+            }, 403)
     return True
 
 '''
@@ -93,6 +109,7 @@ def verify_decode_jwt(token):
     rsa_key = {}
     if 'kid' not in unverified_header:
         raise AuthError({
+            'success': False,
             'code': 'invalid_header',
             'description': 'Authorization malformed.'
         }, 401)
@@ -123,21 +140,25 @@ def verify_decode_jwt(token):
 
         except jwt.ExpiredSignatureError:
             raise AuthError({
+                'success': False,
                 'code': 'token_expired',
                 'description': 'Token expired.'
             }, 401)
 
         except jwt.JWTClaimsError:
             raise AuthError({
+                'success': False,
                 'code': 'invalid_claims',
                 'description': 'Incorrect claims. Please, check the audience and issuer.'
             }, 401)
         except Exception:
             raise AuthError({
+                'success': False,
                 'code': 'invalid_header',
                 'description': 'Unable to parse authentication token.'
             }, 400)
     raise AuthError({
+                'success': False,
                 'code': 'invalid_header',
                 'description': 'Unable to find the appropriate key.'
             }, 400)
@@ -159,7 +180,7 @@ def requires_auth(permission=''):
             token = get_token_auth_header()
             try:
                 payload = verify_decode_jwt(token)
-            except:
+            except AuthError:
                 abort(401)
             check_permissions(permission, payload)
             return f(payload, *args, **kwargs)
